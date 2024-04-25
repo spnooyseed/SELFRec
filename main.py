@@ -1,10 +1,10 @@
 from SELFRec import SELFRec
 from util.conf import ModelConf
-
+from argparse import ArgumentParser
 if __name__ == '__main__':
     # Register your model here
     graph_baselines = ['LightGCN','DirectAU','MF']
-    ssl_graph_models = ['SGL', 'SimGCL', 'SEPT', 'MHCN', 'BUIR', 'SelfCF', 'SSL4Rec', 'XSimGCL', 'NCL','MixGCF']
+    ssl_graph_models = ['SGL', 'SimGCL', 'SEPT', 'MHCN', 'BUIR', 'SelfCF', 'SSL4Rec', 'XSimGCL', 'NCL','MixGCF' , 'MyGCL' , 'ProtoAU']
     sequential_baselines= ['SASRec']
     ssl_sequential_models = ['CL4SRec','DuoRec','BERT4Rec']
 
@@ -24,12 +24,15 @@ if __name__ == '__main__':
     print('Self-Supervised Sequential Models:')
     print('   '.join(ssl_sequential_models))
     print('=' * 80)
-    model = input('Please enter the model you want to run:')
+    # model = input('Please enter the model you want to run:')
+    args_parse = ArgumentParser()
+    args_parse.add_argument('--model' , '-m' , default='MyGCL')
+    args = args_parse.parse_args()
     import time
 
     s = time.time()
-    if model in graph_baselines or model in ssl_graph_models or model in sequential_baselines or model in ssl_sequential_models:
-        conf = ModelConf('./conf/' + model + '.conf')
+    if args.model in graph_baselines or args.model in ssl_graph_models or args.model in sequential_baselines or args.model in ssl_sequential_models:
+        conf = ModelConf('./conf/' + args.model + '.conf')
     else:
         print('Wrong model name!')
         exit(-1)
