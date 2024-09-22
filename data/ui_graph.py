@@ -4,7 +4,8 @@ from data.data import Data
 from data.graph import Graph
 import scipy.sparse as sp
 import pickle
-
+import torch
+from tqdm import tqdm
 class Interaction(Data,Graph):
     def __init__(self, conf, training, test):
         Graph.__init__(self)
@@ -24,13 +25,17 @@ class Interaction(Data,Graph):
         self.ui_adj = self.__create_sparse_bipartite_adjacency()
         self.norm_adj = self.normalize_graph_mat(self.ui_adj)
         self.interaction_mat = self.__create_sparse_interaction_matrix()
-        # popularity_user = {}
-        # for u in self.user:
-        #     popularity_user[self.user[u]] = len(self.training_set_u[u])
-        # popularity_item = {}
-        # for u in self.item:
-        #     popularity_item[self.item[u]] = len(self.training_set_i[u])
+        # self.popularity_bias =  self._get_item_popularity_bias(self.interaction_mat)
 
+    def _get_item_popularity_bias(self , R):
+        # import pdb
+        # pdb.set_trace()
+        R_avg = R.sum() / R.shape[1]
+        col_sum = np.array(R.sum(0)).flatten()
+        t = 2 * (np.log(R_avg) - np.log(col_sum))
+        col_1 = np.exp(t)
+        col_1[np.isinf(col_1)] = 0.
+        return col_1
 
     def __generate_set(self):
         for entry in self.training_data:
@@ -80,12 +85,12 @@ class Interaction(Data,Graph):
         """
         return a sparse adjacency matrix with the shape (user number, item number)
         """
-        row, col, entries = [], [], []
-        for pair in self.training_data:
-            row += [self.user[pair[0]]]
-            col += [self.item[pair[1]]]
-            entries += [1.0]
-        interaction_mat = sp.csr_matrix((entries, (row, col)), shape=(self.user_num,self.item_num),dtype=np.float32)
+        row_idx = [self.user[pair[0]] for pair in self.training_data]
+        col_idx = [self.item[pair[1]] for pair in self.training_data]
+        user_np = np.array(row_idx)
+        item_np = np.array(col_idx)
+        ratings = np.ones_like(user_np, dtype=np.float32)
+        interaction_mat = sp.csr_matrix((ratings, (user_np, item_np)), shape=(self.user_num,self.item_num),dtype=np.float32)
         return interaction_mat
 
     def get_user_id(self, u):

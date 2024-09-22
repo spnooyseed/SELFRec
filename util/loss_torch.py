@@ -46,9 +46,27 @@ def InfoNCE(view1, view2, temperature: float, b_cos: bool = True):
         view1, view2 = F.normalize(view1, dim=1), F.normalize(view2, dim=1)
 
     pos_score = (view1 @ view2.T) / temperature
+    # u * 64 , i * 64
     score = torch.diag(F.log_softmax(pos_score, dim=1))
     return -score.mean()
 
+def WeightInfoNCE(user_embeding , item_embedding , temperature : float , idx , sim_uu , sim_ii , b_cos: bool = True) :
+    if b_cos:
+        user_embeding, item_embedding = F.normalize(user_embeding, dim=1), F.normalize(item_embedding, dim=1)
+    pos_score = (user_embeding @ user_embeding.T) / temperature
+    infoNce = F.log_softmax(pos_score, dim=1)
+    sim_u = sim_uu[idx[0] , :][: , idx[0]].cuda()
+    infoNce = infoNce * sim_u
+    user_loss = -infoNce.sum(1).mean()
+
+    pos_score = (item_embedding @ item_embedding.T) / temperature
+    infoNce = F.log_softmax(pos_score, dim=1)
+
+    sim_i = sim_ii[idx[1] , :][: , idx[1]].cuda()
+    infoNce = infoNce * sim_i
+    item_loss = -infoNce.sum(1).mean()
+
+    return user_loss + item_loss
 
 #this version is from recbole
 def info_nce(z_i, z_j, temp, batch_size, sim='dot'):

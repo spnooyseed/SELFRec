@@ -2,7 +2,7 @@ import os.path
 from os import remove
 from re import split
 
-
+from tqdm import tqdm
 class FileIO(object):
     def __init__(self):
         pass
@@ -24,12 +24,11 @@ class FileIO(object):
         if rec_type == 'graph':
             data = []
             with open(file) as f:
-                for line in f:
+                for line in tqdm(f , desc=f'load data from {file}'):
                     items = split(' ', line.strip())
                     user_id = items[0]
-                    item_id = items[1]
-                    weight = items[2]
-                    data.append([user_id, item_id, float(weight)])
+                    for i in items[1:] :
+                        data.append([user_id, i, float(1)])
 
         if rec_type == 'sequential':
             data = {}

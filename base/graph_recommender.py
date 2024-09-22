@@ -69,6 +69,9 @@ class GraphRecommender(Recommender):
                     line += '*'
             line += '\n'
             self.recOutput.append(line)
+                # line = user + ' ' + item[0] + ' 1'
+                # line += '\n'
+                # self.recOutput.append(line)
         current_time = strftime("%Y-%m-%d %H-%M-%S", localtime(time()))
         # output prediction result
         out_dir = self.output['-dir']
